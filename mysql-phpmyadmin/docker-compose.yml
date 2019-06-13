@@ -1,0 +1,50 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+
+  db:
+    image: mariadb
+    container_name: db
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: your-super-secret-password
+      MYSQL_DATABASE: your-database-name
+      MYSQL_USER: your-database-user
+      MYSQL_PASSWORD: your-secret-password
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '3306:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '3306'
+      # Where our data will be persisted
+    volumes:
+      - {HOST_MACHINE_PATH_TO_SAVE_DATABASES}:/var/lib/mysql
+    networks: 
+      your_network_name:
+        ipv4_address: 172.25.0.2 #Custom IP
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.8
+    container_name: phpmyadmin
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_USER: your-database-user
+      MYSQL_PASSWORD: your-secret-password
+    ports:
+      - '8080:80'
+    depends_on:
+      - db
+
+networks: 
+  your_network_name:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.25.0.0/24" #Custom IP's range
